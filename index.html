@@ -20,20 +20,24 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 16px;
+            padding: 12px;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Растягиваем на всю высоту окна */
+            overflow: hidden; /* Запрещаем скролл всей страницы */
         }
 
-        h1 { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 16px; }
-        .section-label { font-size: 11px; text-transform: uppercase; color: var(--hint-color); font-weight: 600; margin: 12px 0 6px 4px; }
+        h1 { font-size: 18px; font-weight: 600; text-align: center; margin: 4px 0 12px 0; }
+        .section-label { font-size: 11px; text-transform: uppercase; color: var(--hint-color); font-weight: 600; margin: 8px 0 4px 4px; }
         
-        .scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+        .scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; flex-shrink: 0; }
         .chip {
             background-color: var(--secondary-bg);
             border: 1px solid rgba(0,0,0,0.05);
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: var(--border-radius);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             white-space: nowrap;
             cursor: pointer;
@@ -43,13 +47,25 @@
         .chip.active { background-color: var(--link-color); color: #ffffff; }
         .chip .sub-text { font-size: 10px; display: block; margin-top: 2px; }
 
-        .grid { background-color: var(--secondary-bg); border-radius: var(--border-radius); padding: 8px; display: flex; flex-direction: column; gap: 8px; }
-        .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 8px; font-size: 14px; background-color: rgba(0,0,0,0.02); cursor: pointer; }
+        /* Включаем внутреннюю прокрутку только для расписания */
+        .grid { 
+            background-color: var(--secondary-bg); 
+            border-radius: var(--border-radius); 
+            padding: 8px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            overflow-y: auto; 
+            flex-grow: 1; /* Занимает всё оставшееся пространство */
+            margin-bottom: 12px;
+        }
+        
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 8px; font-size: 14px; background-color: rgba(0,0,0,0.02); cursor: pointer; flex-shrink: 0; }
         .slot.selected { background-color: rgba(0, 122, 255, 0.1); color: var(--link-color); outline: 1px solid var(--link-color); }
         .slot.booked { background-color: rgba(234, 76, 137, 0.05); color: var(--hint-color); text-decoration: line-through; pointer-events: none; }
         
-        /* Экранный отладчик ошибок */
-        #debug-console { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; margin-top: 20px; border-radius: 8px; max-height: 120px; overflow-y: auto; text-align: left; }
+        #debug-console { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 8px; max-height: 80px; overflow-y: auto; text-align: left; flex-shrink: 0; }
+
     </style>
 </head>
 <body>
