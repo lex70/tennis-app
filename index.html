@@ -203,7 +203,12 @@
             for (let i = 0; i < 3; i++) {
                 const d = new Date();
                 d.setDate(d.getDate() + i);
-                const key = d.toISOString().split('T')[0];
+                
+                // Исправленный стабильный ключ даты (ГГГГ-ММ-ДД) без T-сплита
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const key = `${year}-${month}-${day}`;
                 
                 let title = i === 0 ? "Сегодня" : i === 1 ? "Завтра" : d.toLocaleDateString('ru-RU', optionsWeekday);
                 title = title.charAt(0).toUpperCase() + title.slice(1);
@@ -216,7 +221,7 @@
 
         const dateChipsContainer = document.getElementById('dateChips');
         const availableDates = generateDates();
-        currentDateString = availableDates[0].key;
+        currentDateString = availableDates[0].key; // Исправлено получение ключа
 
         availableDates.forEach((dateObj, idx) => {
             const chip = document.createElement('div');
@@ -285,9 +290,3 @@
             if (selectedSlots.includes(hour)) {
                 selectedSlots = selectedSlots.filter(h => h < hour);
             } else {
-                if (selectedSlots.length >= 3) {
-                    tg.showAlert("Максимальное время бронирования — 3 часа.");
-                    return;
-                }
-                if (selectedSlots.length > 0) {
-                    const minSelected = Math.min(...selectedSlots);
