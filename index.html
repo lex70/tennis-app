@@ -7,54 +7,30 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #f5f5f7);
-            --text-color: var(--tg-theme-text-color, #1c1c1e);
-            --hint-color: var(--tg-theme-hint-color, #8e8e93);
-            --link-color: var(--tg-theme-link-color, #007aff);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+            --bg-color: #f5f5f7;
+            --text-color: #1c1c1e;
+            --hint-color: #8e8e93;
+            --link-color: #007aff;
+            --secondary-bg: #ffffff;
             --border-radius: 12px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 16px;
             box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
-        h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .section-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: var(--hint-color);
-            font-weight: 600;
-            margin: 12px 0 6px 4px;
-            letter-spacing: 0.3px;
-        }
-
-        .scroller {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-            scrollbar-width: none;
-        }
-        .scroller::-webkit-scrollbar { display: none; }
-
+        h1 { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+        .section-label { font-size: 11px; text-transform: uppercase; color: var(--hint-color); font-weight: 600; margin: 12px 0 6px 4px; }
+        
+        .scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
         .chip {
             background-color: var(--secondary-bg);
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
             padding: 10px 16px;
             border-radius: var(--border-radius);
             font-size: 14px;
@@ -62,101 +38,18 @@
             white-space: nowrap;
             cursor: pointer;
             color: var(--hint-color);
-            transition: all 0.15s ease;
             text-align: center;
         }
+        .chip.active { background-color: var(--link-color); color: #ffffff; }
+        .chip .sub-text { font-size: 10px; display: block; margin-top: 2px; }
+
+        .grid { background-color: var(--secondary-bg); border-radius: var(--border-radius); padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 8px; font-size: 14px; background-color: rgba(0,0,0,0.02); cursor: pointer; }
+        .slot.selected { background-color: rgba(0, 122, 255, 0.1); color: var(--link-color); outline: 1px solid var(--link-color); }
+        .slot.booked { background-color: rgba(234, 76, 137, 0.05); color: var(--hint-color); text-decoration: line-through; pointer-events: none; }
         
-        .chip.active {
-            background-color: var(--link-color);
-            color: #ffffff;
-            border-color: var(--link-color);
-        }
-
-        .chip .sub-text {
-            font-size: 11px;
-            opacity: 0.8;
-            display: block;
-            margin-top: 2px;
-            font-weight: normal;
-        }
-
-        .grid {
-            background-color: var(--secondary-bg);
-            border-radius: var(--border-radius);
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            margin-bottom: 20px;
-        }
-
-        .slot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background-color 0.15s;
-        }
-
-        .slot.available {
-            background-color: rgba(0, 0, 0, 0.02);
-            cursor: pointer;
-        }
-        .slot.available:active {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        .slot.selected {
-            background-color: rgba(0, 122, 255, 0.12);
-            color: var(--link-color);
-            outline: 1.5px solid var(--link-color);
-        }
-
-        .slot.booked {
-            background-color: rgba(234, 76, 137, 0.06);
-            color: var(--hint-color);
-            text-decoration: line-through;
-            pointer-events: none;
-        }
-
-        .status-badge {
-            font-size: 12px;
-            font-weight: normal;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-        .available .status-badge { color: var(--link-color); }
-        .booked .status-badge { color: #ea4c89; background: rgba(234, 76, 137, 0.1); }
-        .selected .status-badge { background: var(--link-color); color: #fff; }
-
-        .footer-panel {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .info-text {
-            font-size: 13px;
-            color: var(--hint-color);
-            line-height: 1.4;
-        }
-
-        .btn-reset {
-            background: none;
-            border: none;
-            color: #ea4c89;
-            font-size: 12px;
-            cursor: pointer;
-            opacity: 0.6;
-            padding: 6px 12px;
-        }
-        .btn-reset:active { opacity: 1; }
+        /* Экранный отладчик ошибок */
+        #debug-console { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; margin-top: 20px; border-radius: 8px; max-height: 120px; overflow-y: auto; text-align: left; }
     </style>
 </head>
 <body>
@@ -172,121 +65,126 @@
     <div class="section-label">Доступное время</div>
     <div class="grid" id="timeGrid"></div>
 
-    <div class="footer-panel">
-        <div class="info-text">
-            Максимальное время бронирования: 3 часа.<br>
-            Шаг бронирования: 1 час.
-        </div>
-        <button class="btn-reset" id="resetBtn">Очистить всю базу броней (тест)</button>
-    </div>
+    <!-- Блок отладки (удалим потом) -->
+    <div id="debug-console">Логи системы:<br></div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        // Функция логирования ошибок прямо на экран
+        function log(msg) {
+            document.getElementById('debug-console').innerHTML += msg + '<br>';
+        }
+
+        window.onerror = function(message, source, lineno, colno, error) {
+            log('ОШИБКА: ' + message + ' (строка: ' + lineno + ')');
+            return false;
+        };
+
+        log('Старт инициализации скрипта...');
+
+        let tg = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            try {
+                tg.ready();
+                log('Telegram WebApp готов.');
+            } catch(e) { log('Ошибка tg.ready: ' + e.message); }
+        } else {
+            log('Запущено вне Telegram (обычный браузер)');
+        }
 
         let currentTable = 1;
         let selectedSlots = [];
-        let currentDateString = "";
+        let currentDateString = "2026-09-04"; // Фиксированная дата для теста без ошибок зон
 
-        let db = JSON.parse(localStorage.getItem('tma_tennis_db')) || {};
+        let db = {};
+        try {
+            db = JSON.parse(localStorage.getItem('tma_tennis_db')) || {};
+            log('База данных localStorage загружена.');
+        } catch(e) { log('Ошибка базы: ' + e.message); db = {}; }
 
-        function saveToStorage() {
-            localStorage.setItem('tma_tennis_db', JSON.stringify(db));
-        }
+        // Жестко прописанные даты, чтобы исключить сбои локализации браузера
+        const availableDates = [
+            { key: "2026-09-04", title: "Сегодня", subtitle: "4 сент" },
+            { key: "2026-09-05", title: "Завтра", subtitle: "5 сент" },
+            { key: "2026-09-06", title: "Вс", subtitle: "6 сент" }
+        ];
 
-        function generateDates() {
-            const dates = [];
-            const optionsWeekday = { weekday: 'short' };
-            const optionsDayMonth = { day: 'numeric', month: 'short' };
+        // Отрисовка дат
+        try {
+            const dateChipsContainer = document.getElementById('dateChips');
+            availableDates.forEach((dateObj, idx) => {
+                const chip = document.createElement('div');
+                chip.className = `chip ${idx === 0 ? 'active' : ''}`;
+                chip.innerHTML = `${dateObj.title}<span class="sub-text">${dateObj.subtitle}</span>`;
+                chip.onclick = () => {
+                    currentDateString = dateObj.key;
+                    selectedSlots = [];
+                    document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    renderSchedule();
+                };
+                dateChipsContainer.appendChild(chip);
+            });
+            log('Даты успешно отрисованы.');
+        } catch(e) { log('Ошибка дат: ' + e.message); }
 
-            for (let i = 0; i < 3; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() + i);
-                
-                // Исправленный стабильный ключ даты (ГГГГ-ММ-ДД) без T-сплита
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                const key = `${year}-${month}-${day}`;
-                
-                let title = i === 0 ? "Сегодня" : i === 1 ? "Завтра" : d.toLocaleDateString('ru-RU', optionsWeekday);
-                title = title.charAt(0).toUpperCase() + title.slice(1);
-                
-                const subtitle = d.toLocaleDateString('ru-RU', optionsDayMonth).replace('.', '');
-                dates.push({ key, title, subtitle });
+        // Отрисовка столов
+        try {
+            const tabsContainer = document.getElementById('tableTabs');
+            for (let i = 1; i <= 5; i++) {
+                const tab = document.createElement('div');
+                tab.className = `tab chip ${i === currentTable ? 'active' : ''}`;
+                tab.innerText = `Стол №${i}`;
+                tab.onclick = () => {
+                    currentTable = i;
+                    selectedSlots = [];
+                    document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderSchedule();
+                };
+                tabsContainer.appendChild(tab);
             }
-            return dates;
-        }
-
-        const dateChipsContainer = document.getElementById('dateChips');
-        const availableDates = generateDates();
-        currentDateString = availableDates[0].key; // Исправлено получение ключа
-
-        availableDates.forEach((dateObj, idx) => {
-            const chip = document.createElement('div');
-            chip.className = `chip ${idx === 0 ? 'active' : ''}`;
-            chip.innerHTML = `${dateObj.title}<span class="sub-text">${dateObj.subtitle}</span>`;
-            chip.onclick = () => switchDate(dateObj.key, chip);
-            dateChipsContainer.appendChild(chip);
-        });
-
-        const tabsContainer = document.getElementById('tableTabs');
-        for (let i = 1; i <= 5; i++) {
-            const tab = document.createElement('div');
-            tab.className = `tab chip ${i === currentTable ? 'active' : ''}`;
-            tab.innerText = `Стол №${i}`;
-            tab.onclick = () => switchTable(i, tab);
-            tabsContainer.appendChild(tab);
-        }
-
-        function switchDate(dateKey, element) {
-            currentDateString = dateKey;
-            selectedSlots = [];
-            document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
-            element.classList.add('active');
-            updateMainButton();
-            renderSchedule();
-        }
-
-        function switchTable(tableId, element) {
-            currentTable = tableId;
-            selectedSlots = [];
-            document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-            updateMainButton();
-            renderSchedule();
-        }
-
-        function getBookedHours() {
-            if (!db[currentDateString]) db[currentDateString] = {};
-            if (!db[currentDateString][currentTable]) db[currentDateString][currentTable] = [];
-            return db[currentDateString][currentTable];
-        }
+            log('Столы успешно отрисованы.');
+        } catch(e) { log('Ошибка столов: ' + e.message); }
 
         function renderSchedule() {
-            const grid = document.getElementById('timeGrid');
-            grid.innerHTML = '';
-            const bookedHours = getBookedHours();
-
-            for (let hour = 8; hour < 20; hour++) {
-                const slot = document.createElement('div');
-                const timeString = `${hour}:00 – ${hour + 1}:00`;
+            try {
+                const grid = document.getElementById('timeGrid');
+                grid.innerHTML = '';
                 
-                if (bookedHours.includes(hour)) {
-                    slot.className = 'slot booked';
-                    slot.innerHTML = `<span>${timeString}</span><span class="status-badge">Занято</span>`;
-                } else {
-                    const isSelected = selectedSlots.includes(hour);
-                    slot.className = `slot available ${isSelected ? 'selected' : ''}`;
-                    slot.innerHTML = `<span>${timeString}</span><span class="status-badge">${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
-                    slot.onclick = () => handleSlotClick(hour);
+                if (!db[currentDateString]) db[currentDateString] = {};
+                if (!db[currentDateString][currentTable]) db[currentDateString][currentTable] = [];
+                const bookedHours = db[currentDateString][currentTable];
+
+                for (let hour = 8; hour < 20; hour++) {
+                    const slot = document.createElement('div');
+                    const timeString = `${hour}:00 – ${hour + 1}:00`;
+                    
+                    if (bookedHours.includes(hour)) {
+                        slot.className = 'slot booked';
+                        slot.innerHTML = `<span>${timeString}</span><span>Занято</span>`;
+                    } else {
+                        const isSelected = selectedSlots.includes(hour);
+                        slot.className = `slot available ${isSelected ? 'selected' : ''}`;
+                        slot.innerHTML = `<span>${timeString}</span><span>${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
+                        slot.onclick = () => {
+                            if (selectedSlots.includes(hour)) {
+                                selectedSlots = selectedSlots.filter(h => h < hour);
+                            } else {
+                                if (selectedSlots.length >= 3) return;
+                                selectedSlots.push(hour);
+                            }
+                            renderSchedule();
+                        };
+                    }
+                    grid.appendChild(slot);
                 }
-                grid.appendChild(slot);
-            }
+            } catch(e) { log('Ошибка расписания: ' + e.message); }
         }
 
-        function handleSlotClick(hour) {
-            if (selectedSlots.includes(hour)) {
-                selectedSlots = selectedSlots.filter(h => h < hour);
-            } else {
+        // Запуск первой отрисовки времени
+        renderSchedule();
+        log('Интерфейс готов к работе.');
+    </script>
+</body>
+</html>
