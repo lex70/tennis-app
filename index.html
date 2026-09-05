@@ -14,217 +14,71 @@
             --secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
             --border-radius: 12px;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            background-color: var(--bg-color); color: var(--text-color);
+            margin: 0; padding: 16px; box-sizing: border-box;
+            -webkit-user-select: none; user-select: none;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-
-        h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 12px 0;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .section-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--hint-color);
-            font-weight: 600;
-            margin: 10px 0 6px 4px;
-            letter-spacing: 0.3px;
-            flex-shrink: 0;
-        }
-
-        .scroller {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            margin-bottom: 8px;
-            scrollbar-width: none;
-            flex-shrink: 0;
-        }
+        h1 { font-size: 20px; font-weight: 600; margin: 0 0 12px 0; text-align: center; flex-shrink: 0; }
+        .section-label { font-size: 11px; text-transform: uppercase; color: var(--hint-color); font-weight: 600; margin: 10px 0 6px 4px; letter-spacing: 0.3px; flex-shrink: 0; }
+        .scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; scrollbar-width: none; flex-shrink: 0; }
         .scroller::-webkit-scrollbar { display: none; }
-
-        .chip {
-            background-color: var(--secondary-bg);
-            border: 1px solid rgba(0,0,0,0.03);
-            padding: 10px 16px;
-            border-radius: var(--border-radius);
-            font-size: 14px;
-            font-weight: 500;
-            white-space: nowrap;
-            cursor: pointer;
-            color: var(--hint-color);
-            transition: all 0.15s ease;
-            text-align: center;
-        }
-        
-        .chip.active {
-            background-color: var(--link-color);
-            color: #ffffff;
-            border-color: var(--link-color);
-        }
-
-        .chip .sub-text {
-            font-size: 11px;
-            opacity: 0.8;
-            display: block;
-            margin-top: 2px;
-            font-weight: normal;
-        }
-
-        .grid {
-            background-color: var(--secondary-bg);
-            border-radius: var(--border-radius);
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            overflow-y: auto;
-            flex-grow: 1;
-            margin-bottom: 12px;
-        }
-
-        .slot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background-color 0.15s;
-            flex-shrink: 0;
-        }
-
-        .slot.available {
-            background-color: rgba(0, 0, 0, 0.02);
-            cursor: pointer;
-        }
-        .slot.available:active {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        .slot.selected {
-            background-color: rgba(0, 122, 255, 0.12);
-            color: var(--link-color);
-            outline: 1.5px solid var(--link-color);
-        }
-
-        .slot.booked {
-            background-color: rgba(234, 76, 137, 0.06);
-            color: var(--hint-color);
-            text-decoration: line-through;
-            pointer-events: none;
-        }
-
-        .status-badge {
-            font-size: 12px;
-            font-weight: normal;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
+        .chip { background-color: var(--secondary-bg); border: 1px solid rgba(0,0,0,0.03); padding: 10px 16px; border-radius: var(--border-radius); font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; color: var(--hint-color); transition: all 0.15s ease; text-align: center; }
+        .chip.active { background-color: var(--link-color); color: #ffffff; border-color: var(--link-color); }
+        .chip .sub-text { font-size: 11px; opacity: 0.8; display: block; margin-top: 2px; font-weight: normal; }
+        .grid { background-color: var(--secondary-bg); border-radius: var(--border-radius); padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow-y: auto; flex-grow: 1; margin-bottom: 12px; }
+        .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 8px; font-size: 15px; font-weight: 500; transition: background-color 0.15s; flex-shrink: 0; }
+        .slot.available { background-color: rgba(0, 0, 0, 0.02); cursor: pointer; }
+        .slot.available:active { background-color: rgba(0, 0, 0, 0.05); }
+        .slot.selected { background-color: rgba(0, 122, 255, 0.12); color: var(--link-color); outline: 1.5px solid var(--link-color); }
+        .slot.booked { background-color: rgba(234, 76, 137, 0.06); color: var(--hint-color); text-decoration: line-through; pointer-events: none; }
+        .status-badge { font-size: 12px; font-weight: normal; padding: 4px 8px; border-radius: 6px; }
         .available .status-badge { color: var(--link-color); }
         .booked .status-badge { color: #ea4c89; background: rgba(234, 76, 137, 0.1); }
         .selected .status-badge { background: var(--link-color); color: #fff; }
-
-        .footer-panel {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
-            flex-shrink: 0;
-            padding-bottom: 8px;
-        }
-
-        .info-text {
-            font-size: 12px;
-            color: var(--hint-color);
-            line-height: 1.4;
-        }
-
-        .btn-reset {
-            background: none;
-            border: none;
-            color: #ea4c89;
-            font-size: 11px;
-            cursor: pointer;
-            opacity: 0.5;
-            padding: 4px 12px;
-        }
+        .footer-panel { text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; flex-shrink: 0; padding-bottom: 8px; }
+        .info-text { font-size: 12px; color: var(--hint-color); line-height: 1.4; }
+        .btn-reset { background: none; border: none; color: #ea4c89; font-size: 11px; cursor: pointer; opacity: 0.5; padding: 4px 12px; }
         .btn-reset:active { opacity: 1; }
     </style>
 </head>
 <body>
-
     <h1>Бронирование столов</h1>
-
     <div class="section-label">Выбор даты</div>
     <div class="scroller" id="dateChips"></div>
-
     <div class="section-label">Выбор стола</div>
     <div class="scroller" id="tableTabs"></div>
-
     <div class="section-label">Доступное время</div>
     <div class="grid" id="timeGrid"></div>
-
     <div class="footer-panel">
-        <div class="info-text">
-            Максимальное время бронирования: 3 часа. Шаг: 1 час.
-        </div>
+        <div class="info-text">Максимальное время бронирования: 3 часа. Шаг: 1 час.</div>
         <button class="btn-reset" id="resetBtn">Очистить тест-базу</button>
     </div>
-
     <script>
         const tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
+        if (tg) { tg.ready(); tg.expand(); }
 
         let currentTable = 1;
         let selectedSlots = [];
         let currentDateString = "";
-
         let db = JSON.parse(localStorage.getItem('tma_tennis_db')) || {};
 
-        function saveToStorage() {
-            localStorage.setItem('tma_tennis_db', JSON.stringify(db));
-        }
+        function saveToStorage() { localStorage.setItem('tma_tennis_db', JSON.stringify(db)); }
 
         function generateDates() {
             const dates = [];
             const optionsWeekday = { weekday: 'short' };
             const optionsDayMonth = { day: 'numeric', month: 'short' };
-
             for (let i = 0; i < 3; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() + i);
-                
+                const d = new Date(); d.setDate(d.getDate() + i);
                 const year = d.getFullYear();
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const day = String(d.getDate()).padStart(2, '0');
                 const key = `${year}-${month}-${day}`;
-                
                 let title = i === 0 ? "Сегодня" : i === 1 ? "Завтра" : d.toLocaleDateString('ru-RU', optionsWeekday);
                 title = title.charAt(0).toUpperCase() + title.slice(1);
-                
                 const subtitle = d.toLocaleDateString('ru-RU', optionsDayMonth).replace('.', '');
                 dates.push({ key, title, subtitle });
             }
@@ -251,23 +105,16 @@
             tab.onclick = () => switchTable(i, tab);
             tabsContainer.appendChild(tab);
         }
-
         function switchDate(dateKey, element) {
-            currentDateString = dateKey;
-            selectedSlots = [];
+            currentDateString = dateKey; selectedSlots = [];
             document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
-            element.classList.add('active');
-            updateMainButton();
-            renderSchedule();
+            element.classList.add('active'); updateMainButton(); renderSchedule();
         }
 
         function switchTable(tableId, element) {
-            currentTable = tableId;
-            selectedSlots = [];
+            currentTable = tableId; selectedSlots = [];
             document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-            updateMainButton();
-            renderSchedule();
+            element.classList.add('active'); updateMainButton(); renderSchedule();
         }
 
         function getBookedHours() {
@@ -277,14 +124,10 @@
         }
 
         function renderSchedule() {
-            const grid = document.getElementById('timeGrid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('timeGrid'); grid.innerHTML = '';
             const bookedHours = getBookedHours();
-
             for (let hour = 8; hour < 20; hour++) {
-                const slot = document.createElement('div');
-                const timeString = `${hour}:00 – ${hour + 1}:00`;
-                
+                const slot = document.createElement('div'); const timeString = `${hour}:00 – ${hour + 1}:00`;
                 if (bookedHours.includes(hour)) {
                     slot.className = 'slot booked';
                     slot.innerHTML = `<span>${timeString}</span><span class="status-badge">Занято</span>`;
@@ -294,8 +137,7 @@
                     slot.innerHTML = `<span>${timeString}</span><span class="status-badge">${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
                     slot.onclick = () => handleSlotClick(hour);
                 }
-                    grid.appendChild(slot);
-                }
+                grid.appendChild(slot);
             }
         }
 
@@ -311,66 +153,43 @@
                 if (selectedSlots.length > 0) {
                     const minSelected = Math.min(...selectedSlots);
                     const maxSelected = Math.max(...selectedSlots);
-                    if (hour === maxSelected + 1) {
-                        selectedSlots.push(hour);
-                    } else if (hour === minSelected - 1) {
-                        selectedSlots.unshift(hour);
-                    } else {
-                        selectedSlots = [hour];
-                    }
-                } else {
-                    selectedSlots.push(hour);
-                }
+                    if (hour === maxSelected + 1) { selectedSlots.push(hour); }
+                    else if (hour === minSelected - 1) { selectedSlots.unshift(hour); }
+                    else { selectedSlots = [hour]; }
+                } else { selectedSlots.push(hour); }
             }
-            renderSchedule();
-            updateMainButton();
+            renderSchedule(); updateMainButton();
         }
 
         function updateMainButton() {
             if (!tg) return;
             if (selectedSlots.length > 0) {
                 selectedSlots.sort((a, b) => a - b);
-                const startHour = selectedSlots;
+                const startHour = selectedSlots[0];
                 const endHour = selectedSlots[selectedSlots.length - 1] + 1;
                 tg.MainButton.text = `Подтвердить Стол №${currentTable} (${startHour}:00 - ${endHour}:00)`;
                 tg.MainButton.show();
-            } else {
-                tg.MainButton.hide();
-            }
+            } else { tg.MainButton.hide(); }
         }
 
         if (tg) {
             tg.onEvent('mainButtonClicked', function() {
                 const bookedHours = getBookedHours();
-                selectedSlots.forEach(hour => {
-                    if (!bookedHours.includes(hour)) {
-                        bookedHours.push(hour);
-                    }
-                });
+                selectedSlots.forEach(hour => { if (!bookedHours.includes(hour)) bookedHours.push(hour); });
                 saveToStorage();
-                
-                const startHour = selectedSlots;
+                const startHour = selectedSlots[0];
                 const endHour = selectedSlots[selectedSlots.length - 1] + 1;
                 const formattedDate = availableDates.find(d => d.key === currentDateString);
-
                 tg.showPopup({
                     title: 'Бронь оформлена!',
                     message: `Дата: ${formattedDate.title} (${formattedDate.subtitle})\nСтол №${currentTable}\nВремя: ${startHour}:00 - ${endHour}:00`,
                     buttons: [{type: 'ok'}]
-                }, function() {
-                    selectedSlots = [];
-                    updateMainButton();
-                    renderSchedule();
-                });
+                }, function() { selectedSlots = []; updateMainButton(); renderSchedule(); });
             });
         }
 
         document.getElementById('resetBtn').onclick = () => {
-            db = {};
-            saveToStorage();
-            selectedSlots = [];
-            updateMainButton();
-            renderSchedule();
+            db = {}; saveToStorage(); selectedSlots = []; updateMainButton(); renderSchedule();
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         };
 
