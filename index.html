@@ -203,29 +203,38 @@
         renderSchedule();
     </script>
 	
-<!-- Подключаем официальный скрипт Telegram -->
+<!-- Официальный скрипт Telegram (убедитесь, что он подключен) -->
 <script src="https://telegram.org"></script>
 
 <script>
-    // Защита от повторного объявления: берем уже существующий tg или инициализируем заново
-    window.tg = window.tg || window.Telegram.WebApp;
-    // Используем window.tg, чтобы избежать ошибки Uncaught SyntaxError
-    window.tg.expand(); 
+// Ждем, пока загрузится абсолютно вся страница и все внешние скрипты (включая Telegram)
+window.addEventListener('load', () => {
+    console.log("Страница и скрипты полностью загружены");
 
-    // Адрес вашего туннеля
+    // Безопасная инициализация tg
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
+        expand: () => console.log("Скрипт: Метод expand() запущен в браузере"),
+        showAlert: (msg) => alert(msg),
+        initDataUnsafe: { user: { username: 'Тестовый_Игрок' } }
+    };
+
+    // Разворачиваем приложение в Telegram
+    if (typeof tg.expand === 'function') tg.expand();
+
+    // Адрес вашего туннеля localtunnel
     const API_URL = 'https://loca.lt'; 
 
     let selectedTable = 'table-1';
-    let selectedDate = new Date().toISOString().split('T')[0]; // Исправлен метод получения YYYY-MM-DD
+    let selectedDate = new Date().toISOString().split('T')[0]; // Исправлено получение строки даты YYYY-MM-DD
 
-    // Функция отправки бронирования в MariaDB
+    // Функция отправки бронирования в базу MariaDB
     async function bookSlot(timeSlot) {
         const startTime = `${selectedDate} ${timeSlot}:00`;
         const [hours, minutes] = timeSlot.split(':');
         const endHour = String(Number(hours) + 1).padStart(2, '0');
         const endTime = `${selectedDate} ${endHour}:${minutes}:00`;
 
-        const username = window.tg.initDataUnsafe?.user?.username || 'Игрок TMA';
+        const username = tg.initDataUnsafe?.user?.username || 'Игрок TMA';
         const debugConsole = document.getElementById('debug-console');
         if (debugConsole) debugConsole.innerText = `Отправка брони на ${timeSlot}...`;
 
@@ -244,18 +253,18 @@
             const data = await response.json();
             
             if (data.success) {
-                window.tg.showAlert(`🎉 Успешно! Стол: ${selectedTable} забронирован на ${timeSlot}`);
-                if (debugConsole) debugConsole.innerText = `Успешно сохранено в БД! ID записи: ${data.bookingId}`;
+                tg.showAlert(`🎉 Успешно! Стол: ${selectedTable} забронирован на ${timeSlot}`);
+                if (debugConsole) debugConsole.innerText = `Успешно сохранено в БД! ID: ${data.bookingId}`;
                 loadBookedSlots(); 
             } else {
-                window.tg.showAlert(`Ошибка базы данных: ${data.error}`);
+                tg.showAlert(`Ошибка базы данных: ${data.error}`);
             }
         } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Ошибка сети: ' + error.message;
+            if (debugConsole) debugConsole.innerText = 'Ошибка сети бэкенда: ' + error.message;
         }
     }
 
-    // Функция синхронизации с вашей MariaDB
+    // Функция синхронизации и блокировки занятых мест
     async function loadBookedSlots() {
         const debugConsole = document.getElementById('debug-console');
         try {
@@ -264,13 +273,12 @@
             
             if (debugConsole) debugConsole.innerText = `Загружено броней из базы: ${bookedSlots.length}`;
             
-            // Очищаем старые блокировки на экране
+            // Сбрасываем старые блокировки на экране
             document.querySelectorAll('.slot').forEach(el => el.classList.remove('booked'));
 
-            // Блокируем занятые слоты
+            // Блокируем занятые слоты для текущего стола
             bookedSlots.forEach(booking => {
                 if (booking.tableId === selectedTable) {
-                    // Извлекаем только время "ЧЧ:ММ" из даты ответа бэкенда
                     const rawDate = new Date(booking.sdate);
                     const bookingTime = String(rawDate.getHours()).padStart(2, '0') + ':' + String(rawDate.getMinutes()).padStart(2, '0');
                     
@@ -282,22 +290,27 @@
                 }
             });
         } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Не удалось обновить слоты: ' + error.message;
+            if (debugConsole) debugConsole.innerText = 'Ошибка соединения с туннелем: ' + error.message;
         }
     }
 
-    // Привязка кликов к элементам
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.slot').forEach(slotElement => {
-            slotElement.addEventListener('click', () => {
-                if (slotElement.classList.contains('booked')) return;
-                
-                // Берем текст времени из слота (например, из "08:00 - 09:00" берем первые 5 символов)
-                const timeText = slotElement.innerText.trim().substring(0, 5);
-                bookSlot(timeText);
-            });
+    // Навешиваем обработчики кликов на слоты времени
+    document.querySelectorAll('.slot').forEach(slotElement => {
+        slotElement.addEventListener('click', () => {
+            if (slotElement.classList.contains('booked')) return;
+            
+            // Извлекаем время (например, "13:00") из текста или дата-атрибута слота
+            // Если текст внутри слота содержит просто число вроде "13", превращаем его в "13:00"
+            let timeText = slotElement.innerText.trim().substring(0, 5);
+            if (!timeText.includes(':')) {
+                timeText = timeText.padStart(2, '0') + ':00';
+            }
+            
+            bookSlot(timeText);
         });
-
-        loadBookedSlots();
     });
+
+    // Сразу запрашиваем актуальные данные из вашей БД при старте
+    loadBookedSlots();
+});
 </script>
