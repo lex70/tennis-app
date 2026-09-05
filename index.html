@@ -7,65 +7,168 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --bg-color: #f5f5f7;
-            --text-color: #1c1c1e;
-            --hint-color: #8e8e93;
-            --link-color: #007aff;
-            --secondary-bg: #ffffff;
+            --bg-color: var(--tg-theme-bg-color, #f5f5f7);
+            --text-color: var(--tg-theme-text-color, #1c1c1e);
+            --hint-color: var(--tg-theme-hint-color, #8e8e93);
+            --link-color: var(--tg-theme-link-color, #007aff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
             --border-radius: 12px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 12px;
+            padding: 16px;
             box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Растягиваем на всю высоту окна */
-            overflow: hidden; /* Запрещаем скролл всей страницы */
+            height: 100vh;
+            overflow: hidden;
         }
 
-        h1 { font-size: 18px; font-weight: 600; text-align: center; margin: 4px 0 12px 0; }
-        .section-label { font-size: 11px; text-transform: uppercase; color: var(--hint-color); font-weight: 600; margin: 8px 0 4px 4px; }
-        
-        .scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; flex-shrink: 0; }
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--hint-color);
+            font-weight: 600;
+            margin: 10px 0 6px 4px;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
+
+        .scroller {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+        .scroller::-webkit-scrollbar { display: none; }
+
         .chip {
             background-color: var(--secondary-bg);
-            border: 1px solid rgba(0,0,0,0.05);
-            padding: 8px 14px;
+            border: 1px solid rgba(0,0,0,0.03);
+            padding: 10px 16px;
             border-radius: var(--border-radius);
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             white-space: nowrap;
             cursor: pointer;
             color: var(--hint-color);
+            transition: all 0.15s ease;
             text-align: center;
         }
-        .chip.active { background-color: var(--link-color); color: #ffffff; }
-        .chip .sub-text { font-size: 10px; display: block; margin-top: 2px; }
+        
+        .chip.active {
+            background-color: var(--link-color);
+            color: #ffffff;
+            border-color: var(--link-color);
+        }
 
-        /* Включаем внутреннюю прокрутку только для расписания */
-        .grid { 
-            background-color: var(--secondary-bg); 
-            border-radius: var(--border-radius); 
-            padding: 8px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            overflow-y: auto; 
-            flex-grow: 1; /* Занимает всё оставшееся пространство */
+        .chip .sub-text {
+            font-size: 11px;
+            opacity: 0.8;
+            display: block;
+            margin-top: 2px;
+            font-weight: normal;
+        }
+
+        .grid {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            overflow-y: auto;
+            flex-grow: 1;
             margin-bottom: 12px;
         }
-        
-        .slot { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 8px; font-size: 14px; background-color: rgba(0,0,0,0.02); cursor: pointer; flex-shrink: 0; }
-        .slot.selected { background-color: rgba(0, 122, 255, 0.1); color: var(--link-color); outline: 1px solid var(--link-color); }
-        .slot.booked { background-color: rgba(234, 76, 137, 0.05); color: var(--hint-color); text-decoration: line-through; pointer-events: none; }
-        
-        #debug-console { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 8px; max-height: 80px; overflow-y: auto; text-align: left; flex-shrink: 0; }
 
+        .slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .slot.available {
+            background-color: rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+        }
+        .slot.available:active {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .slot.selected {
+            background-color: rgba(0, 122, 255, 0.12);
+            color: var(--link-color);
+            outline: 1.5px solid var(--link-color);
+        }
+
+        .slot.booked {
+            background-color: rgba(234, 76, 137, 0.06);
+            color: var(--hint-color);
+            text-decoration: line-through;
+            pointer-events: none;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            font-weight: normal;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .available .status-badge { color: var(--link-color); }
+        .booked .status-badge { color: #ea4c89; background: rgba(234, 76, 137, 0.1); }
+        .selected .status-badge { background: var(--link-color); color: #fff; }
+
+        .footer-panel {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            padding-bottom: 8px;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: var(--hint-color);
+            line-height: 1.4;
+        }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: #ea4c89;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 4px 12px;
+        }
+        .btn-reset:active { opacity: 1; }
     </style>
 </head>
 <body>
@@ -81,237 +184,113 @@
     <div class="section-label">Доступное время</div>
     <div class="grid" id="timeGrid"></div>
 
-    <!-- Блок отладки (удалим потом) -->
-    <div id="debug-console">Логи системы:<br></div>
+    <div class="footer-panel">
+        <div class="info-text">
+            Максимальное время бронирования: 3 часа. Шаг: 1 час.
+        </div>
+        <button class="btn-reset" id="resetBtn">Очистить тест-базу</button>
+    </div>
 
     <script>
-        // Функция логирования ошибок прямо на экран
-        function log(msg) {
-            document.getElementById('debug-console').innerHTML += msg + '<br>';
-        }
-
-        window.onerror = function(message, source, lineno, colno, error) {
-            log('ОШИБКА: ' + message + ' (строка: ' + lineno + ')');
-            return false;
-        };
-
-        log('Старт инициализации скрипта...');
-
-        let tg = null;
-        if (window.Telegram && window.Telegram.WebApp) {
-            tg = window.Telegram.WebApp;
-            try {
-                tg.ready();
-                log('Telegram WebApp готов.');
-            } catch(e) { log('Ошибка tg.ready: ' + e.message); }
-        } else {
-            log('Запущено вне Telegram (обычный браузер)');
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
         }
 
         let currentTable = 1;
         let selectedSlots = [];
-        let currentDateString = "2026-09-04"; // Фиксированная дата для теста без ошибок зон
+        let currentDateString = "";
 
-        let db = {};
-        try {
-            db = JSON.parse(localStorage.getItem('tma_tennis_db')) || {};
-            log('База данных localStorage загружена.');
-        } catch(e) { log('Ошибка базы: ' + e.message); db = {}; }
+        let db = JSON.parse(localStorage.getItem('tma_tennis_db')) || {};
 
-        // Жестко прописанные даты, чтобы исключить сбои локализации браузера
-        const availableDates = [
-            { key: "2026-09-04", title: "Сегодня", subtitle: "4 сент" },
-            { key: "2026-09-05", title: "Завтра", subtitle: "5 сент" },
-            { key: "2026-09-06", title: "Вс", subtitle: "6 сент" }
-        ];
+        function saveToStorage() {
+            localStorage.setItem('tma_tennis_db', JSON.stringify(db));
+        }
 
-        // Отрисовка дат
-        try {
-            const dateChipsContainer = document.getElementById('dateChips');
-            availableDates.forEach((dateObj, idx) => {
-                const chip = document.createElement('div');
-                chip.className = `chip ${idx === 0 ? 'active' : ''}`;
-                chip.innerHTML = `${dateObj.title}<span class="sub-text">${dateObj.subtitle}</span>`;
-                chip.onclick = () => {
-                    currentDateString = dateObj.key;
-                    selectedSlots = [];
-                    document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
-                    renderSchedule();
-                };
-                dateChipsContainer.appendChild(chip);
-            });
-            log('Даты успешно отрисованы.');
-        } catch(e) { log('Ошибка дат: ' + e.message); }
+        function generateDates() {
+            const dates = [];
+            const optionsWeekday = { weekday: 'short' };
+            const optionsDayMonth = { day: 'numeric', month: 'short' };
 
-        // Отрисовка столов
-        try {
-            const tabsContainer = document.getElementById('tableTabs');
-            for (let i = 1; i <= 5; i++) {
-                const tab = document.createElement('div');
-                tab.className = `tab chip ${i === currentTable ? 'active' : ''}`;
-                tab.innerText = `Стол №${i}`;
-                tab.onclick = () => {
-                    currentTable = i;
-                    selectedSlots = [];
-                    document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    renderSchedule();
-                };
-                tabsContainer.appendChild(tab);
+            for (let i = 0; i < 3; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const key = `${year}-${month}-${day}`;
+                
+                let title = i === 0 ? "Сегодня" : i === 1 ? "Завтра" : d.toLocaleDateString('ru-RU', optionsWeekday);
+                title = title.charAt(0).toUpperCase() + title.slice(1);
+                
+                const subtitle = d.toLocaleDateString('ru-RU', optionsDayMonth).replace('.', '');
+                dates.push({ key, title, subtitle });
             }
-            log('Столы успешно отрисованы.');
-        } catch(e) { log('Ошибка столов: ' + e.message); }
-
-        function renderSchedule() {
-            try {
-                const grid = document.getElementById('timeGrid');
-                grid.innerHTML = '';
-                
-                if (!db[currentDateString]) db[currentDateString] = {};
-                if (!db[currentDateString][currentTable]) db[currentDateString][currentTable] = [];
-                const bookedHours = db[currentDateString][currentTable];
-
-                for (let hour = 8; hour < 20; hour++) {
-                    const slot = document.createElement('div');
-                    const timeString = `${hour}:00 – ${hour + 1}:00`;
-                    
-                    if (bookedHours.includes(hour)) {
-                        slot.className = 'slot booked';
-                        slot.innerHTML = `<span>${timeString}</span><span>Занято</span>`;
-                    } else {
-                        const isSelected = selectedSlots.includes(hour);
-                        slot.className = `slot available ${isSelected ? 'selected' : ''}`;
-                        slot.innerHTML = `<span>${timeString}</span><span>${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
-                        slot.onclick = () => {
-                            if (selectedSlots.includes(hour)) {
-                                selectedSlots = selectedSlots.filter(h => h < hour);
-                            } else {
-                                if (selectedSlots.length >= 3) return;
-                                selectedSlots.push(hour);
-                            }
-                            renderSchedule();
-                        };
-                    }
-                    grid.appendChild(slot);
-                }
-            } catch(e) { log('Ошибка расписания: ' + e.message); }
+            return dates;
         }
 
-        // Запуск первой отрисовки времени
-        renderSchedule();
-        log('Интерфейс готов к работе.');
-    </script>
-<!-- Подключаем официальный скрипт Telegram, чтобы приложение понимало, кто его открыл -->
-<script src="https://telegram.org"></script>
+        const dateChipsContainer = document.getElementById('dateChips');
+        const availableDates = generateDates();
+        currentDateString = availableDates[0].key;
 
-<script>
-    // 1. Инициализируем Telegram WebApp и разворачиваем на весь экран
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    // 2. Прописываем ваш полученный адрес туннеля
-    const API_URL = 'https://loca.lt'; 
-
-    // Переменные для хранения текущего выбора пользователя (по умолчанию первый стол и сегодняшняя дата)
-    let selectedTable = 'table-1';
-    let selectedDate = new Date().toISOString().split('T')[0]; // Формат YYYY-MM-DD
-
-    // 3. Функция отправки бронирования на ваш компьютер (в базу данных)
-    async function bookSlot(timeSlot) {
-        // Формируем формат даты и времени для MariaDB (например: 2026-09-05 08:00:00)
-        const startTime = `${selectedDate} ${timeSlot}:00`;
-        
-        // Вычисляем время окончания брони (плюс 1 час для MVP)
-        const [hours, minutes] = timeSlot.split(':');
-        const endHour = String(Number(hours) + 1).padStart(2, '0');
-        const endTime = `${selectedDate} ${endHour}:${minutes}:00`;
-
-        // Получаем юзернейм из Telegram, если его нет — пишем "Игрок"
-        const username = tg.initDataUnsafe?.user?.username || 'Игрок TMA';
-
-        // Выводим статус в вашу зеленую отладочную консоль внизу экрана
-        const debugConsole = document.getElementById('debug-console');
-        if (debugConsole) debugConsole.innerText = `Отправка брони на ${timeSlot}...`;
-
-        try {
-            // Отправляем POST-запрос на ваш локальный сервер через туннель
-            const response = await fetch(`${API_URL}/book`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    tableId: selectedTable,
-                    startTime: startTime,
-                    endTime: endTime,
-                    note: `Бронь через бота от @${username}`
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                tg.showAlert(`🎉 Успешно! Стол: ${selectedTable} забронирован на ${timeSlot}`);
-                if (debugConsole) debugConsole.innerText = `Успешно сохранено в БД! ID записи: ${data.bookingId}`;
-                loadBookedSlots(); // Обновляем список, чтобы заблокировать этот слот
-            } else {
-                tg.showAlert(`Ошибка базы данных: ${data.error}`);
-            }
-        } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Ошибка сети: ' + error.message;
-        }
-    }
-
-    // 4. Функция, которая запрашивает из вашей MariaDB уже занятые слоты
-    async function loadBookedSlots() {
-        const debugConsole = document.getElementById('debug-console');
-        try {
-            const response = await fetch(`${API_URL}/booked-slots`);
-            const bookedSlots = await response.json();
-            
-            if (debugConsole) debugConsole.innerText = `Загружено бронирований из базы: ${bookedSlots.length}`;
-            
-            // Очищаем старые блокировки перед обновлением
-            document.querySelectorAll('.slot').forEach(el => el.classList.remove('booked'));
-
-            // Логика блокировки слотов на экране
-            bookedSlots.forEach(booking => {
-                // Если бронь совпадает с выбранным столом
-                if (booking.tableId === selectedTable) {
-                    // Извлекаем часы и минуты из даты начала (sdate)
-                    const bookingTime = booking.sdate.split('T')[1]?.substring(0, 5); // Получаем "08:00"
-                    
-                    // Ищем слот на экране с таким временем и блокируем его
-                    document.querySelectorAll('.slot').forEach(slotElement => {
-                        if (slotElement.innerText.includes(bookingTime) || slotElement.dataset.time === bookingTime) {
-                            slotElement.classList.add('booked');
-                        }
-                    });
-                }
-            });
-        } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Не удалось обновить слоты: ' + error.message;
-        }
-    }
-
-    // 5. Ожидаем загрузки страницы и вешаем обработчики кликов на слоты времени
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.slot').forEach(slotElement => {
-            slotElement.addEventListener('click', () => {
-                // Если слот уже занят (перечеркнут), игнорируем клик
-                if (slotElement.classList.contains('booked')) return;
-                
-                // Извлекаем текст времени из слота (например, "08:00")
-                const timeText = slotElement.innerText.split('\n')[0].trim().substring(0, 5);
-                
-                // Запускаем процесс бронирования
-                bookSlot(timeText);
-            });
+        availableDates.forEach((dateObj, idx) => {
+            const chip = document.createElement('div');
+            chip.className = `chip ${idx === 0 ? 'active' : ''}`;
+            chip.innerHTML = `${dateObj.title}<span class="sub-text">${dateObj.subtitle}</span>`;
+            chip.onclick = () => switchDate(dateObj.key, chip);
+            dateChipsContainer.appendChild(chip);
         });
 
-        // Сразу загружаем занятые слоты из базы при открытии приложения
-        loadBookedSlots();
-    });
-</script>
+        const tabsContainer = document.getElementById('tableTabs');
+        for (let i = 1; i <= 5; i++) {
+            const tab = document.createElement('div');
+            tab.className = `tab chip ${i === currentTable ? 'active' : ''}`;
+            tab.innerText = `Стол №${i}`;
+            tab.onclick = () => switchTable(i, tab);
+            tabsContainer.appendChild(tab);
+        }
 
-</body>
-</html>
+        function switchDate(dateKey, element) {
+            currentDateString = dateKey;
+            selectedSlots = [];
+            document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            updateMainButton();
+            renderSchedule();
+        }
+
+        function switchTable(tableId, element) {
+            currentTable = tableId;
+            selectedSlots = [];
+            document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            updateMainButton();
+            renderSchedule();
+        }
+
+        function getBookedHours() {
+            if (!db[currentDateString]) db[currentDateString] = {};
+            if (!db[currentDateString][currentTable]) db[currentDateString][currentTable] = [];
+            return db[currentDateString][currentTable];
+        }
+
+        function renderSchedule() {
+            const grid = document.getElementById('timeGrid');
+            grid.innerHTML = '';
+            const bookedHours = getBookedHours();
+
+            for (let hour = 8; hour < 20; hour++) {
+                const slot = document.createElement('div');
+                const timeString = `${hour}:00 – ${hour + 1}:00`;
+                
+                if (bookedHours.includes(hour)) {
+                    slot.className = 'slot booked';
+                    slot.innerHTML = `<span>${timeString}</span><span class="status-badge">Занято</span>`;
+                } else {
+                    const isSelected = selectedSlots.includes(hour);
+                    slot.className = `slot available ${isSelected ? 'selected' : ''}`;
+                    slot.innerHTML = `<span>${timeString}</span><span class="status-badge">${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
+                    slot.onclick = () => handleSlotClick(hour);
+                }
