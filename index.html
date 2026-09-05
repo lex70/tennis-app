@@ -230,41 +230,85 @@ window.addEventListener('load', () => {
         console.log(message);
     }
 
+    // 1. Инициализация Telegram WebApp
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
+        expand: () => console.log("Браузер"),
         showAlert: (msg) => alert(msg),
-        initDataUnsafe: { user: { username: 'Игрок' } }
+        initDataUnsafe: { user: { id: 99999, first_name: 'Тест', last_name: 'Пользователь', username: 'test_user' } },
+        themeParams: {}
     };
+    if (typeof tg.expand === 'function') tg.expand();
+
+    // 2. Функция автоматического определения темы (Светлая / Тёмная)
+    function applyTelegramTheme() {
+        try {
+            // Берем цвета напрямую из настроек оформления Telegram пользователя
+            const themeColors = tg.themeParams;
+            
+            if (themeColors && themeColors.bg_color) {
+                // Если Telegram передал параметры темы, применяем их к CSS
+                document.documentElement.style.setProperty('--bg-color', themeColors.bg_color);
+                document.documentElement.style.setProperty('--text-color', themeColors.text_color);
+                document.documentElement.style.setProperty('--hint-color', themeColors.hint_color);
+                document.documentElement.style.setProperty('--link-color', themeColors.link_color);
+                document.documentElement.style.setProperty('--secondary-bg', themeColors.secondary_bg_color);
+                logDebug("Тема синхронизирована с оформлением Telegram");
+            } else {
+                // Резервный вариант, если открыто в обычном браузере (поддержка темной темы системы)
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.style.setProperty('--bg-color', '#1c1c1e');
+                    document.documentElement.style.setProperty('--text-color', '#ffffff');
+                    document.documentElement.style.setProperty('--hint-color', '#8e8e93');
+                    document.documentElement.style.setProperty('--secondary-bg', '#2c2c2e');
+                    logDebug("Применена системная Тёмная тема");
+                }
+            }
+        } catch (e) {
+            console.error("Ошибка применения темы:", e);
+        }
+    }
+    
+    // Запускаем применение темы и подписываемся на её динамическое изменение пользователем
+    applyTelegramTheme();
+    if (typeof tg.onEvent === 'function') {
+        tg.onEvent('themeChanged', applyTelegramTheme);
+    }
 
     const API_URL = 'https://tennis-court-api-n7og.onrender.com/api'; 
 
-    // Главная функция: запрашивает данные из MariaDB и блокирует слоты на экране
+    // 3. Загрузка занятых слотов с фильтрацией по дате
     async function loadBookedSlots() {
-        // Автоматически подхватываем дату и стол из переменных вашего шаблона!
         const activeDate = typeof currentDateString !== 'undefined' ? currentDateString : new Date().toISOString().split('T')[0];
         const activeTable = typeof currentTable !== 'undefined' ? `table-${currentTable}` : 'table-1';
 
         logDebug(`Запрос базы для ${activeTable} на дату ${activeDate}...`);
         try {
+            // Передаем дату параметром на бэкенд
             const response = await fetch(`${API_URL}/booked-slots?date=${activeDate}`);
             if (!response.ok) throw new Error(`Код: ${response.status}`);
             
             const bookedSlots = await response.json();
             logDebug(`Успешно получено броней из базы: ${bookedSlots.length}`);
             
-            // Проходим по броням и красим их на экране
+            document.querySelectorAll('.slot').forEach(el => {
+                el.classList.remove('booked');
+                el.style.textDecoration = 'none';
+                el.style.opacity = '1';
+                el.style.pointerEvents = 'auto';
+            });
+
             bookedSlots.forEach(booking => {
                 if (String(booking.tableId) === String(activeTable)) {
-                    // Извлекаем ЧЧ:ММ
                     let bookingTime = booking.sdate.includes('T') ? booking.sdate.split('T')[1].substring(0, 5) : booking.sdate.split(' ')[1].substring(0, 5);
                     const hour = parseInt(bookingTime.substring(0, 2));
 
-                    // Ищем слот по тексту часа
                     document.querySelectorAll('.slot').forEach(slotElement => {
                         const slotText = slotElement.innerText.trim();
                         if (slotText.startsWith(String(hour)) || slotText.startsWith(`0${hour}`)) {
                             slotElement.classList.add('booked');
                             slotElement.style.textDecoration = 'line-through';
-                            slotElement.style.opacity = '0.5';
+                            slotElement.style.opacity = '0.4';
+                            slotElement.style.pointerEvents = 'none';
                         }
                     });
                 }
@@ -274,7 +318,7 @@ window.addEventListener('load', () => {
         }
     }
 
-    // Функция отправки новой брони в базу при клике
+    // 4. Отправка новой брони с данными пользователя Telegram
     async function bookSlot(timeHour) {
         const activeDate = typeof currentDateString !== 'undefined' ? currentDateString : new Date().toISOString().split('T')[0];
         const activeTable = typeof currentTable !== 'undefined' ? `table-${currentTable}` : 'table-1';
@@ -283,8 +327,12 @@ window.addEventListener('load', () => {
         const startTime = `${activeDate} ${timeSlot}:00`;
         const endTime = `${activeDate} ${String(Number(timeHour) + 1).padStart(2, '0')}:00:00`;
 
-        const username = tg.initDataUnsafe?.user?.username || 'Игрок TMA';
-        logDebug(`Отправка брони: Стол ${activeTable}, Время ${timeSlot}, Дата ${activeDate}`);
+        // Автоматически определяем пользователя Telegram
+        const userRaw = tg.initDataUnsafe?.user;
+        const tgId = userRaw?.id || 12345; // ID пользователя
+        const tgName = userRaw ? `${userRaw.first_name} ${userRaw.last_name || ''} (@${userRaw.username || ''})`.trim() : 'Игрок без профиля';
+
+        logDebug(`Отправка брони для пользователя ${tgName}...`);
 
         try {
             const response = await fetch(`${API_URL}/book`, {
@@ -294,15 +342,16 @@ window.addEventListener('load', () => {
                     tableId: activeTable,
                     startTime: startTime,
                     endTime: endTime,
-                    note: `Бронь от @${username}`
+                    tgId: tgId,
+                    tgName: tgName
                 })
             });
 
             const data = await response.json();
             if (data.success) {
-                logDebug(`🎉 Сохранено в БД! ID: ${data.bookingId}`);
-                tg.showAlert(`Успешно забронировано!`);
-                loadBookedSlots(); // Сразу обновляем экран
+                logDebug(`🎉 Сохранено в БД! Клиент ID: ${data.clientId}, Бронь ID: ${data.bookingId}`);
+                tg.showAlert(`Успешно забронировано на имя ${tgName}!`);
+                loadBookedSlots();
             } else {
                 logDebug(`Ошибка: ${data.error}`);
             }
@@ -311,13 +360,11 @@ window.addEventListener('load', () => {
         }
     }
 
-    // АВТО-ПЕРЕХВАТЧИК КЛИКОВ (Патч интерфейса)
-    // Следим за тем, что происходит на экране, и реагируем на действия пользователя
+    // Перехватчик кликов
     document.body.addEventListener('click', (event) => {
         const target = event.target.closest('.slot');
         if (target) {
             if (target.classList.contains('booked')) return;
-            // Вытаскиваем число часа (например, из строки "8:00 - 9:00" или просто "8" берем цифру)
             const hourMatch = target.innerText.match(/^\d+/);
             if (hourMatch) {
                 bookSlot(hourMatch[0]);
@@ -325,8 +372,7 @@ window.addEventListener('load', () => {
         }
     });
 
-    // Авто-обновление при смене даты или стола
-    // Каждые 500 миллисекунд проверяем, изменил ли пользователь фильтр в меню
+    // Мониторинг интерфейса для смены фильтров
     let lastDate = "";
     let lastTable = "";
     setInterval(() => {
@@ -335,11 +381,10 @@ window.addEventListener('load', () => {
         if (activeDate !== lastDate || activeTable !== lastTable) {
             lastDate = activeDate;
             lastTable = activeTable;
-            loadBookedSlots(); // Сами дергаем базу данных при переключении кнопок
+            loadBookedSlots();
         }
-    }, 600);
+    }, 500);
 
-    // Стартовая загрузка
     loadBookedSlots();
 });
 </script>
