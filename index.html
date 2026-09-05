@@ -294,3 +294,87 @@
                     slot.innerHTML = `<span>${timeString}</span><span class="status-badge">${isSelected ? 'Выбрано' : 'Свободно'}</span>`;
                     slot.onclick = () => handleSlotClick(hour);
                 }
+                    grid.appendChild(slot);
+                }
+            }
+        }
+
+        function handleSlotClick(hour) {
+            if (selectedSlots.includes(hour)) {
+                selectedSlots = selectedSlots.filter(h => h < hour);
+            } else {
+                if (selectedSlots.length >= 3) {
+                    if (tg) tg.showAlert("Максимальное время бронирования — 3 часа.");
+                    else alert("Максимальное время бронирования — 3 часа.");
+                    return;
+                }
+                if (selectedSlots.length > 0) {
+                    const minSelected = Math.min(...selectedSlots);
+                    const maxSelected = Math.max(...selectedSlots);
+                    if (hour === maxSelected + 1) {
+                        selectedSlots.push(hour);
+                    } else if (hour === minSelected - 1) {
+                        selectedSlots.unshift(hour);
+                    } else {
+                        selectedSlots = [hour];
+                    }
+                } else {
+                    selectedSlots.push(hour);
+                }
+            }
+            renderSchedule();
+            updateMainButton();
+        }
+
+        function updateMainButton() {
+            if (!tg) return;
+            if (selectedSlots.length > 0) {
+                selectedSlots.sort((a, b) => a - b);
+                const startHour = selectedSlots;
+                const endHour = selectedSlots[selectedSlots.length - 1] + 1;
+                tg.MainButton.text = `Подтвердить Стол №${currentTable} (${startHour}:00 - ${endHour}:00)`;
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        if (tg) {
+            tg.onEvent('mainButtonClicked', function() {
+                const bookedHours = getBookedHours();
+                selectedSlots.forEach(hour => {
+                    if (!bookedHours.includes(hour)) {
+                        bookedHours.push(hour);
+                    }
+                });
+                saveToStorage();
+                
+                const startHour = selectedSlots;
+                const endHour = selectedSlots[selectedSlots.length - 1] + 1;
+                const formattedDate = availableDates.find(d => d.key === currentDateString);
+
+                tg.showPopup({
+                    title: 'Бронь оформлена!',
+                    message: `Дата: ${formattedDate.title} (${formattedDate.subtitle})\nСтол №${currentTable}\nВремя: ${startHour}:00 - ${endHour}:00`,
+                    buttons: [{type: 'ok'}]
+                }, function() {
+                    selectedSlots = [];
+                    updateMainButton();
+                    renderSchedule();
+                });
+            });
+        }
+
+        document.getElementById('resetBtn').onclick = () => {
+            db = {};
+            saveToStorage();
+            selectedSlots = [];
+            updateMainButton();
+            renderSchedule();
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        };
+
+        renderSchedule();
+    </script>
+</body>
+</html>
