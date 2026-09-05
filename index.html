@@ -203,40 +203,110 @@
         renderSchedule();
     </script>
 	
-<!-- Официальный скрипт Telegram (убедитесь, что он подключен) -->
+<!-- Официальный скрипт Telegram -->
 <script src="https://telegram.org"></script>
 
 <script>
-// Ждем, пока загрузится абсолютно вся страница и все внешние скрипты (включая Telegram)
 window.addEventListener('load', () => {
-    console.log("Страница и скрипты полностью загружены");
+    // 1. Проверяем или создаем дебаг-консоль, если она пропала из HTML
+    let debugConsole = document.getElementById('debug-console');
+    if (!debugConsole) {
+        debugConsole = document.createElement('div');
+        debugConsole.id = 'debug-console';
+        debugConsole.style = "background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 8px; max-height: 100px; overflow-y: auto; text-align: left; margin-top: 15px; clear: both;";
+        document.body.appendChild(debugConsole);
+    }
+    
+    debugConsole.innerText = "Дебаг-панель инициализирована. Ожидание действий...";
 
-    // Безопасная инициализация tg
+    // 2. Инициализируем Telegram WebApp
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
-        expand: () => console.log("Скрипт: Метод expand() запущен в браузере"),
+        expand: () => console.log("Запущено в браузере"),
         showAlert: (msg) => alert(msg),
-        initDataUnsafe: { user: { username: 'Тестовый_Игрок' } }
+        initDataUnsafe: { user: { username: 'Игрок' } }
     };
-
-    // Разворачиваем приложение в Telegram
     if (typeof tg.expand === 'function') tg.expand();
 
-    // Адрес вашего туннеля localtunnel
-    const API_URL = 'https://tennis-court-api-n7og.onrender.com/api'; 
+    // Адрес вашего сервера Render
+    const API_URL = 'https://onrender.com'; 
 
+    // Глобальные переменные интерфейса. ВАЖНО: синхронизируем с вашим кодом выбора столов/дат
     let selectedTable = 'table-1';
-    let selectedDate = new Date().toISOString().split('T')[0]; // Исправлено получение строки даты YYYY-MM-DD
+    let selectedDate = new Date().toISOString().split('T')[0]; // Формат YYYY-MM-DD
 
-    // Функция отправки бронирования в базу MariaDB
+    // Функция логирования в нашу плашку на экране
+    function logDebug(message) {
+        if (debugConsole) {
+            debugConsole.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
+        }
+        console.log(message);
+    }
+
+    // 3. Функция, которая запрашивает из MariaDB забронированные места
+    async function loadBookedSlots() {
+        logDebug(`Запрос броней для стола ${selectedTable} на дату ${selectedDate}...`);
+        try {
+            // Передаем дату на бэкенд, чтобы не качать лишнее
+            const response = await fetch(`${API_URL}/booked-slots?date=${selectedDate}`);
+            if (!response.ok) throw new Error(`Код ответа сервера: ${response.status}`);
+            
+            const bookedSlots = await response.json();
+            logDebug(`Успешно получено броней из базы: ${bookedSlots.length}`);
+            
+            // Сбрасываем старое оформление «занято» со всех кнопок
+            document.querySelectorAll('.slot').forEach(el => {
+                el.classList.remove('booked');
+                el.style.textDecoration = 'none';
+                el.style.pointerEvents = 'auto';
+            });
+
+            // Проходим по каждой брони из базы данных
+            bookedSlots.forEach(booking => {
+                // Проверяем, совпадает ли стол
+                if (String(booking.tableId) === String(selectedTable) || selectedTable.includes(String(booking.tableId))) {
+                    
+                    // Извлекаем чистое время старта ЧЧ:ММ (работает корректно и с ISO, и с MySQL строками)
+                    let bookingTime = "";
+                    if (booking.sdate.includes('T')) {
+                        bookingTime = booking.sdate.split('T')[1].substring(0, 5);
+                    } else {
+                        bookingTime = booking.sdate.split(' ')[1]?.substring(0, 5) || "";
+                    }
+                    
+                    if (!bookingTime) return;
+
+                    // Корректируем под часовой пояс, если бэкенд шлет в UTC (опционально, берем первые 2 цифры часа)
+                    const hour = bookingTime.substring(0, 2);
+
+                    // Ищем кнопку слота на экране
+                    document.querySelectorAll('.slot').forEach(slotElement => {
+                        const slotText = slotElement.innerText.trim();
+                        // Если на кнопке написано "18" или "18:00" или в dataset есть время
+                        if (slotText.startsWith(hour) || slotElement.dataset.time === bookingTime) {
+                            slotElement.classList.add('booked');
+                            slotElement.style.textDecoration = 'line-through';
+                            slotElement.style.pointerEvents = 'none'; // Запрещаем кликать
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            logDebug(`Ошибка связи с сервером Render: ${error.message}`);
+        }
+    }
+
+    // 4. Функция отправки новой брони в базу данных
     async function bookSlot(timeSlot) {
+        // Форматируем для MySQL: YYYY-MM-DD ЧЧ:ММ:СС
         const startTime = `${selectedDate} ${timeSlot}:00`;
+        
+        // Вычисляем время завершения сессии (+1 час)
         const [hours, minutes] = timeSlot.split(':');
         const endHour = String(Number(hours) + 1).padStart(2, '0');
         const endTime = `${selectedDate} ${endHour}:${minutes}:00`;
 
         const username = tg.initDataUnsafe?.user?.username || 'Игрок TMA';
-        const debugConsole = document.getElementById('debug-console');
-        if (debugConsole) debugConsole.innerText = `Отправка брони на ${timeSlot}...`;
+        logDebug(`Отправка запроса брони на ${timeSlot}...`);
 
         try {
             const response = await fetch(`${API_URL}/book`, {
@@ -253,55 +323,28 @@ window.addEventListener('load', () => {
             const data = await response.json();
             
             if (data.success) {
-                tg.showAlert(`🎉 Успешно! Стол: ${selectedTable} забронирован на ${timeSlot}`);
-                if (debugConsole) debugConsole.innerText = `Успешно сохранено в БД! ID: ${data.bookingId}`;
+                logDebug(`🎉 Успешно сохранено в MariaDB! ID записи: ${data.bookingId}`);
+                tg.showAlert(`Стол успешно забронирован на ${timeSlot}!`);
+                // Моментально обновляем экран, чтобы слот стал перечеркнутым
                 loadBookedSlots(); 
             } else {
-                tg.showAlert(`Ошибка базы данных: ${data.error}`);
+                logDebug(`Сервер отклонил бронь: ${data.error}`);
+                tg.showAlert(`Ошибка: ${data.error}`);
             }
         } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Ошибка сети бэкенда: ' + error.message;
+            logDebug(`Ошибка отправки fetch: ${error.message}`);
         }
     }
 
-    // Функция синхронизации и блокировки занятых мест
-    async function loadBookedSlots() {
-        const debugConsole = document.getElementById('debug-console');
-        try {
-            const response = await fetch(`${API_URL}/booked-slots`);
-            const bookedSlots = await response.json();
-            
-            if (debugConsole) debugConsole.innerText = `Загружено броней из базы: ${bookedSlots.length}`;
-            
-            // Сбрасываем старые блокировки на экране
-            document.querySelectorAll('.slot').forEach(el => el.classList.remove('booked'));
-
-            // Блокируем занятые слоты для текущего стола
-            bookedSlots.forEach(booking => {
-                if (booking.tableId === selectedTable) {
-                    const rawDate = new Date(booking.sdate);
-                    const bookingTime = String(rawDate.getHours()).padStart(2, '0') + ':' + String(rawDate.getMinutes()).padStart(2, '0');
-                    
-                    document.querySelectorAll('.slot').forEach(slotElement => {
-                        if (slotElement.innerText.includes(bookingTime) || slotElement.dataset.time === bookingTime) {
-                            slotElement.classList.add('booked');
-                        }
-                    });
-                }
-            });
-        } catch (error) {
-            if (debugConsole) debugConsole.innerText = 'Ошибка соединения с туннелем: ' + error.message;
-        }
-    }
-
-    // Навешиваем обработчики кликов на слоты времени
+    // 5. Перехватываем клики по элементам интерфейса, чтобы обновлять данные
+    
+    // Клик по временным слотам
     document.querySelectorAll('.slot').forEach(slotElement => {
         slotElement.addEventListener('click', () => {
             if (slotElement.classList.contains('booked')) return;
             
-            // Извлекаем время (например, "13:00") из текста или дата-атрибута слота
-            // Если текст внутри слота содержит просто число вроде "13", превращаем его в "13:00"
-            let timeText = slotElement.innerText.trim().substring(0, 5);
+            // Вытаскиваем числовое значение часа из верстки (например "18" превращаем в "18:00")
+            let timeText = slotElement.innerText.replace('-> Клик по слоту времени:', '').trim().substring(0, 5);
             if (!timeText.includes(':')) {
                 timeText = timeText.padStart(2, '0') + ':00';
             }
@@ -310,7 +353,30 @@ window.addEventListener('load', () => {
         });
     });
 
-    // Сразу запрашиваем актуальные данные из вашей БД при старте
+    // Функция для связки с вашими кнопками переключения столов и дат
+    // Интегрируем в существующие функции вашего шаблона фронтенда
+    function СкриптОбновленияИнтерфейса(тип, значение) {
+        if (тип === 'стол') {
+            selectedTable = `table-${значение}`; // или просто значение
+        } else if (тип === 'дата') {
+            selectedDate = {значение}; 
+        }
+        loadBookedSlots(); // Перезапрашиваем базу при каждом переключении!
+    }
+
+    // Связываем с вашей версткой переключения дат/столов
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            setTimeout(() => {
+                // Считываем то, что выбрано в интерфейсе после клика
+                const activeTableEl = document.querySelector('.chip.active'); // скорректируйте селектор под ваш HTML
+                // Автоматически дергаем обновление данных из базы
+                loadBookedSlots();
+            }, 50);
+        });
+    });
+
+    // Первая загрузка при старте
     loadBookedSlots();
 });
 </script>
