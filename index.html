@@ -105,12 +105,20 @@
             tab.onclick = () => switchTable(i, tab);
             tabsContainer.appendChild(tab);
         }
-        function switchDate(dateKey, element) {
-            console.log("-> Переключение даты на:", dateKey);
-            currentDateString = dateKey; selectedSlots = [];
-            document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
-            element.classList.add('active'); updateMainButton(); renderSchedule();
-        }
+function switchDate(dateKey, element) {
+    console.log("-> Переключение даты на:", dateKey);
+    currentDateString = dateKey; 
+    selectedSlots = [];
+    document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
+    element.classList.add('active'); 
+    updateMainButton(); 
+    renderSchedule();
+
+    // СВЯЗКА С БАЗОЙ ДАННЫХ:
+    selectedDate = dateKey; // Передаем новую дату в наш скрипт
+    if (typeof loadBookedSlots === 'function') loadBookedSlots(); // Перерисовываем занятые слоты
+}
+
 
         function switchTable(tableId, element) {
             console.log("-> Переключение стола на №", tableId);
