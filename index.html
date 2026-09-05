@@ -106,12 +106,14 @@
             tabsContainer.appendChild(tab);
         }
         function switchDate(dateKey, element) {
+            console.log("-> Переключение даты на:", dateKey);
             currentDateString = dateKey; selectedSlots = [];
             document.querySelectorAll('#dateChips .chip').forEach(c => c.classList.remove('active'));
             element.classList.add('active'); updateMainButton(); renderSchedule();
         }
 
         function switchTable(tableId, element) {
+            console.log("-> Переключение стола на №", tableId);
             currentTable = tableId; selectedSlots = [];
             document.querySelectorAll('#tableTabs .tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active'); updateMainButton(); renderSchedule();
@@ -124,6 +126,7 @@
         }
 
         function renderSchedule() {
+            console.log("-> Отрисовка расписания для даты:", currentDateString, "и стола №", currentTable);
             const grid = document.getElementById('timeGrid'); grid.innerHTML = '';
             const bookedHours = getBookedHours();
             for (let hour = 8; hour < 20; hour++) {
@@ -142,6 +145,10 @@
         }
 
         function handleSlotClick(hour) {
+            // Мгновенная проверка: браузер покажет окно, если клик вообще сработал
+            alert("Клик зафиксирован на часе: " + hour + ":00");
+            console.log("-> Клик по слоту времени:", hour);
+
             if (selectedSlots.includes(hour)) {
                 selectedSlots = selectedSlots.filter(h => h < hour);
             } else {
@@ -197,3 +204,4 @@
     </script>
 </body>
 </html>
+
